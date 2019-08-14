@@ -30,6 +30,7 @@ import { Root } from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import BarcodeScanner from './src/Barcode_Scan';
+import Index from './src/Index';
 import LoginComponent from './src/login/LoginComponent';
 
 export default class App extends React.Component {

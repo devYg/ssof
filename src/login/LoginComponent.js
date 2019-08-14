@@ -31,7 +31,7 @@ let alertOption={
     button  : '확인'
 };
 
-// const db = SQLite.openDatebase('ssof.db');
+const db = SQLite.openDatabase("ssof.db");
 const LoginComponent = memo(()=>{
     
     const [auth, setAuth] = useState({
@@ -57,15 +57,28 @@ const LoginComponent = memo(()=>{
             setPiker(responseJson.rows);
         })
         .catch((error) => {
-            console.error(error);
+            // console.error(error);
+            alertOption.msg = '서버와 통신이 원활하지 않습니다.\n잠시후 다시 시도하세요.'
+            oneButtonAlert(alertOption);
         });
 
         // db.transaction(tx => {
         //     tx.executeSql(
-        //         'create table if not exists TM_USERM (SITE_CD text, AUTH_CD text, AUTH_PWD text, EMP_NO, text, EMP_NM text, MENU_LV text, POSI_CD text);'
-        //         //'create table if not exists TM_USERM (id integer primary key not null, done int, value text);'
+        //         'DROP TABLE TM_USERM'
         //     );
         // });
+
+        db.transaction(tx => {
+            tx.executeSql(
+                'create table if not exists TM_USERM (SITE_CD text , AUTH_CD text, AUTH_PWD text, EMP_NO, text, EMP_NM text, MENU_LV text, POSI_CD text);'
+            );
+        });
+
+        // db.transaction(tx => {
+        //     tx.executeSql(
+        //       "create table if not exists items (id integer primary key not null, done int, value text);"
+        //     );
+        //   });
 
     },[]);
     
@@ -90,13 +103,34 @@ const LoginComponent = memo(()=>{
             .then((response) => response.json())
             .then((responseJson) => {
                 // return JSON.stringify(responseJson.rows);
-                console.log(responseJson);
+                // console.log(responseJson);
                 if( responseJson.ROW_CNT == 0 ){
                     alertOption.msg = '일치하는 정보가 없습니다.'
                     oneButtonAlert(alertOption);
+                }else{
+                    let parm = [
+                                    responseJson.ROWS[0].SITE_CD, 
+                                    auth.authCd, 
+                                    auth.authPwd, 
+                                    responseJson.ROWS[0].EMP_NO, 
+                                    responseJson.ROWS[0].EMP_NM, 
+                                    responseJson.ROWS[0].MENU_LEVEL, 
+                                    responseJson.ROWS[0].POSI_CD
+                                ];
+                    //인증성공하면 사용자정보 SQLite 저장
+                    db.transaction(
+                        tx => {
+                            tx.executeSql('delete from TM_USERM', []);  //로그인 정보는 한사람 것만 가지고 있으면 되니까 이전꺼 삭제
+                            tx.executeSql('insert into TM_USERM (SITE_CD, AUTH_CD, AUTH_PWD, EMP_NO, EMP_NM, MENU_LV, POSI_CD) values (?, ?, ?, ?, ?, ? ,?)', parm);
+                            // tx.executeSql("select * from TM_USERM", [], (_, { rows }) =>
+                            //     console.log('결과:'+JSON.stringify(rows))
+                            // );
+                        }
+                    );
                 }
             })
             .catch((error) => {
+                // console.log(error);
                 alertOption.msg = '서버와 통신이 원활하지 않습니다.\n잠시후 다시 시도하세요.'
                 oneButtonAlert(alertOption);
             });
