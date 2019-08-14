@@ -26,7 +26,7 @@
 
 import React from 'react';
 import { AppLoading } from 'expo';
-import { Container, Text } from 'native-base';
+import { Root } from 'native-base';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import BarcodeScanner from './src/Barcode_Scan';
@@ -55,9 +55,9 @@ export default class App extends React.Component {
     }
 
     return (
-      <Container>
+      <Root>
         <LoginComponent />
-      </Container>
+      </Root>
     );
   }
 }
