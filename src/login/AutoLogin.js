@@ -2,7 +2,8 @@ import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { SQLite } from 'expo-sqlite';
 import { Spinner, Icon } from "native-base";
-import {SERVER_IP, STORE_PORT, GET_SITE_URL, GET_LOGIN_URL} from '../ExportValue';
+import FixValue from '../FixValue';
+import UrlModel from '../UrlModel';
 import * as Font from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -48,13 +49,6 @@ export default class AutoLogin extends React.Component{
         }),
         ()=>{console.log('error')}, //error
         ()=>{};                     //success 
-
-        // db.transaction(
-        //     tx => {
-        //         tx.executeSql('delete from TM_USERM', []);  //로그인 정보는 한사람 것만 가지고 있으면 되니까 이전꺼 삭제
-                
-        //     }
-        // );
         
         db.transaction(
             tx => {
@@ -80,7 +74,7 @@ export default class AutoLogin extends React.Component{
                             }),
                         }
 
-                        fetch(`${SERVER_IP}:${STORE_PORT}${GET_LOGIN_URL}`,fetchOption)
+                        fetch(`${FixValue.SERVER_IP}:${FixValue.STORE_PORT}${UrlModel.GET_LOGIN_URL}`,fetchOption)
                         .then((response) => response.json())
                         .then((responseJson) => {            
                             if( responseJson.ROW_CNT == 0 ){

@@ -3,7 +3,8 @@ import { StyleSheet, Platform, Alert  } from 'react-native';
 import { Container, Header, Item, Input, Title, Label, Button, Text, Picker, Icon } from 'native-base';
 import { SQLite } from 'expo-sqlite';
 import { Col, Row, Grid } from 'react-native-easy-grid';
-import {SERVER_IP, STORE_PORT, GET_SITE_URL, GET_LOGIN_URL} from '../ExportValue';
+import FixValue from '../FixValue';
+import UrlModel from '../UrlModel';
 import { oneButtonAlert } from '../ExportAlert';
 
 const style = StyleSheet.create({
@@ -40,7 +41,7 @@ class LoginComponent extends PureComponent{
     }
 
     componentDidMount(){
-        fetch(`${SERVER_IP}:${STORE_PORT}${GET_SITE_URL}`)
+        fetch(`${FixValue.SERVER_IP}:${FixValue.STORE_PORT}${UrlModel.GET_SITE_URL}`)
         .then((response) => response.json())
         .then((responseJson) => {
             // return JSON.stringify(responseJson.rows);
@@ -90,7 +91,7 @@ class LoginComponent extends PureComponent{
                 }),
             }
     
-            fetch(`${SERVER_IP}:${STORE_PORT}${GET_LOGIN_URL}`,fetchOption)
+            fetch(`${FixValue.SERVER_IP}:${FixValue.STORE_PORT}${UrlModel.GET_LOGIN_URL}`,fetchOption)
             .then((response) => response.json())
             .then((responseJson) => {
                 // return JSON.stringify(responseJson.rows);
