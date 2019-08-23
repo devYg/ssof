@@ -1,188 +1,95 @@
-import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity
-} from "react-native";
-import Constants from "expo-constants";
-import { SQLite } from "expo-sqlite";
+import React, { PureComponent } from 'react';
+import { View, Text, StyleSheet, ToastAndroid, BackHandler, Platform } from 'react-native';
+import { Icon, Container, Header, Left, Button, Body, Title, Right, Content, Footer, FooterTab } from 'native-base';
+import styles from './Common/Styles';
 
-const db = SQLite.openDatabase("db.db");
+export default class Index extends PureComponent {
 
-class Items extends React.Component {
-  state = {
-    items: null
-  };
-
-  componentDidMount() {
-    this.update();
-  }
-
-  render() {
-    const { done: doneHeading } = this.props;
-    const { items } = this.state;
-    const heading = doneHeading ? "Completed" : "Todo";
-
-    if (items === null || items.length === 0) {
-      return null;
+    exitApp = false;
+    timeout;
+    // 이벤트 등록
+    componentDidMount() {
+         //BackHandler.addEventListener('hardwareBackPress', this.handleBackButton);
     }
 
-    return (
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionHeading}>{heading}</Text>
-        {items.map(({ id, done, value }) => (
-          <TouchableOpacity
-            key={id}
-            onPress={() => this.props.onPressItem && this.props.onPressItem(id)}
-            style={{
-              backgroundColor: done ? "#1c9963" : "#fff",
-              borderColor: "#000",
-              borderWidth: 1,
-              padding: 8
-            }}
-          >
-            <Text style={{ color: done ? "#fff" : "#000" }}>{value}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    );
-  }
-
-  update() {
-    db.transaction(tx => {
-      tx.executeSql(
-        `select * from items where done = ?;`,
-        [this.props.done ? 1 : 0],
-        (_, { rows: { _array } }) => this.setState({ items: _array })
-      );
-    });
-  }
-}
-
-export default class Index extends React.Component {
-  state = {
-    text: null
-  };
-
-  componentDidMount() {
-    db.transaction(tx => {
-      tx.executeSql(
-        "create table if not exists items (id integer primary key not null, done int, value text);"
-      );
-    });
-  }
-
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.heading}>SQLite Example</Text>
-        <View style={styles.flexRow}>
-          <TextInput
-            onChangeText={text => this.setState({ text })}
-            onSubmitEditing={() => {
-              this.add(this.state.text);
-              this.setState({ text: null });
-            }}
-            placeholder="what do you need to do?"
-            style={styles.input}
-            value={this.state.text}
-          />
-        </View>
-        <ScrollView style={styles.listArea}>
-          <Items
-            done={false}
-            ref={todo => (this.todo = todo)}
-            onPressItem={id =>
-              db.transaction(
-                tx => {
-                  tx.executeSql(`update items set done = 1 where id = ?;`, [
-                    id
-                  ]);
-                },
-                null,
-                this.update
-              )
-            }
-          />
-          <Items
-            done={true}
-            ref={done => (this.done = done)}
-            onPressItem={id =>
-              db.transaction(
-                tx => {
-                  tx.executeSql(`delete from items where id = ?;`, [id]);
-                },
-                null,
-                this.update
-              )
-            }
-          />
-        </ScrollView>
-      </View>
-    );
-  }
-
-  add(text) {
-    // is text empty?
-    if (text === null || text === "") {
-      return false;
+    // 이벤트 해제
+    componentWillUnmount() {
+        this.exitApp = false;
+         //BackHandler.removeEventListener('hardwareBackPress', this.handleBackButton);
     }
 
-    db.transaction(
-      tx => {
-        tx.executeSql("insert into items (done, value) values (0, ?)", [text]);
-        tx.executeSql("select * from items", [], (_, { rows }) =>
-          console.log('결과:'+JSON.stringify(rows))
+    // 이벤트 동작
+    handleBackButton = () => {
+        // 2000(2초) 안에 back 버튼을 한번 더 클릭 할 경우 앱 종료
+        if( Platform.OS === 'android'){
+        if (this.exitApp == undefined || !this.exitApp) {
+            ToastAndroid.show('한번 더 누르시면 종료됩니다.', ToastAndroid.SHORT);
+            this.exitApp = true;
+
+            this.timeout = setTimeout(
+                () => {
+                    this.exitApp = false;
+                },2000    // 2초
+            );
+        } else {
+            clearTimeout(this.timeout);
+
+            BackHandler.exitApp();  // 앱 종료
+        }
+        }else{
+        BackHandler.exitApp();  // 앱 종료
+        }
+        
+        return true;
+    }
+
+    render(){
+        return(
+            <Container>
+                <Header style={styles.header} androidStatusBarColor="#FF0214">
+                    <Left>
+                        <Button transparent onPress={() => this.props.navigation.openDrawer()}>
+                            <Icon name="menu"/>
+                        </Button>
+                    </Left>
+                    <Body>
+                        <Title>EveryN</Title>
+                    </Body>
+                    <Right>
+                        <Button transparent onPress={() => this.props.navigation.navigate('scan')}>
+                            <Icon ios="ios-barcode" android="md-barcode"/>
+                        </Button>
+                    </Right>
+                </Header>
+                
+                <Content>
+                    <View style={styles.container}>
+                        <Text style={styles.text} >매인</Text>
+                        <Button title="zzz"></Button>
+                    </View>
+                </Content>
+                <Footer>
+                    <FooterTab style={styles.footer}>
+                        <Button style={styles.active}>
+                            <Icon ios="ios-home" android="md-home" />
+                            <Text style={styles.text}>Home</Text>
+                        </Button>
+                        <Button onPress={() => this.props.navigation.navigate('입고')}>
+                            <Icon ios="ios-cart" android="md-cart" />
+                            <Text style={styles.text}>입고</Text>
+                        </Button>
+                        <Button onPress={() => this.props.navigation.navigate('출고')}>
+                            <Icon ios="ios-basket" android="md-basket" />
+                            <Text style={styles.text}>출고</Text>
+                        </Button>
+                        <Button onPress={() => this.props.navigation.navigate('재고')}>
+                            <Icon ios="ios-paper" android="md-paper" />
+                            <Text style={styles.text}>재고</Text>
+                        </Button>
+                    </FooterTab>
+                </Footer>
+            </Container>
+            
         );
-      },
-      null,
-      this.update
-    );
-  }
-
-  update = () => {
-    this.todo && this.todo.update();
-    this.done && this.done.update();
-  };
-}
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#fff",
-    flex: 1,
-    paddingTop: Constants.statusBarHeight
-  },
-  heading: {
-    fontSize: 20,
-    fontWeight: "bold",
-    textAlign: "center"
-  },
-  flexRow: {
-    flexDirection: "row"
-  },
-  input: {
-    borderColor: "#4630eb",
-    borderRadius: 4,
-    borderWidth: 1,
-    flex: 1,
-    height: 48,
-    margin: 16,
-    padding: 8
-  },
-  listArea: {
-    backgroundColor: "#f0f0f0",
-    flex: 1,
-    paddingTop: 16
-  },
-  sectionContainer: {
-    marginBottom: 16,
-    marginHorizontal: 16
-  },
-  sectionHeading: {
-    fontSize: 18,
-    marginBottom: 8
-  }
-});
+    }
+};
